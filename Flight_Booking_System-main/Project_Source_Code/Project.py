@@ -1732,37 +1732,40 @@ class Confirm_Customer_Information(QDialog):
         self.Customer_Info_TableWidget.setColumnWidth(1, 175)
         self.Customer_Info_TableWidget.setColumnWidth(3, 175)
         self.Customer_Info_TableWidget.setColumnWidth(4, 175)
-
         self.Customer_Info_TableWidget.setColumnWidth(5, 175)
         self.Customer_Info_TableWidget.setColumnWidth(6, 175)
         self.Customer_Info_TableWidget.setColumnWidth(7, 175)
         self.Customer_Info_TableWidget.setColumnWidth(8, 175)
 
-
         self.Yes_Button.clicked.connect(self.gotoUpdateCustomer)
         self.No_Button.clicked.connect(self.gotoPaymentPage)
 
-        db = mysql.connector.connect(host = 'localhost', database='dbms_project', user = 'root', password = 'aamod@261001')
+        # Database connection
+        db = mysql.connector.connect(host='localhost', database='dbms_project', user='root', password='aamod@261001')
         cursor = db.cursor(buffered=True)
 
-        query = "SELECT * FROM FULL_CUSTOMER_INFORMATION WHERE Customer_Name = %s;" # Displaying the Information from the VIEW FULL_CUSTOMER_INFORMATION which includes a cartesian product of 
-        # the tables initial_info_account and full_profile_account where the Username of Customer_Name columns of the respective relations match.
-        tpl = (Email_Field, )           
+        # Query to fetch customer information
+        query = "SELECT * FROM full_profile_account WHERE Customer_Name = %s;"
+        tpl = (Email_Field,)  # Replace with the correct field for the logged-in user
+        print("Executing query:", query % tpl)  # Debug print
         cursor.execute(query, tpl)
 
-        print(cursor.statement)
-        print()
-        self.Customer_Info_TableWidget.setRowCount(0)
-        self.Customer_Info_TableWidget.verticalHeader().setVisible(False)  # Hiding the Row Count Numbers displayed on the side.
-
-
+        # Fetch and display data
         result = cursor.fetchall()
+        print("Query result:", result)  # Debug print
+        self.Customer_Info_TableWidget.setRowCount(0)
+        self.Customer_Info_TableWidget.verticalHeader().setVisible(False)
+
+        if not result:
+            QMessageBox.warning(self, "Error", "No data found for the customer!")
+            return
+
         for row_number, row_data in enumerate(result):
             self.Customer_Info_TableWidget.insertRow(row_number)
-
             for column_number, data in enumerate(row_data):
                 self.Customer_Info_TableWidget.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(data)))
 
+        db.close()
 
     def gotoUpdateCustomer(self):
         update = Update_Customer_Information()
@@ -1773,6 +1776,7 @@ class Confirm_Customer_Information(QDialog):
         Pay = Payment_Booking()
         widget.addWidget(Pay)
         widget.setCurrentIndex(widget.currentIndex() + 1)
+
 
     
 class Update_Customer_Information(QDialog):
